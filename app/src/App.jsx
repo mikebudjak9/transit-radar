@@ -3,22 +3,21 @@ import React, { useState, useEffect, useCallback } from 'react'
 const API = import.meta.env.VITE_API_URL || ''
 
 const SIGNAL_COLORS = {
-  WAR: { bg: 'rgba(239,68,68,0.12)', border: 'rgba(239,68,68,0.3)', text: '#ef4444' },
-  ECONOMIC: { bg: 'rgba(245,158,11,0.12)', border: 'rgba(245,158,11,0.3)', text: '#f59e0b' },
-  HEALTH: { bg: 'rgba(16,185,129,0.12)', border: 'rgba(16,185,129,0.3)', text: '#10b981' },
-  POLITICAL: { bg: 'rgba(124,58,237,0.12)', border: 'rgba(124,58,237,0.3)', text: '#a78bfa' },
-  SOCIAL: { bg: 'rgba(236,72,153,0.12)', border: 'rgba(236,72,153,0.3)', text: '#ec4899' },
-  TECH: { bg: 'rgba(6,182,212,0.12)', border: 'rgba(6,182,212,0.3)', text: '#06b6d4' },
-  DISASTER: { bg: 'rgba(249,115,22,0.12)', border: 'rgba(249,115,22,0.3)', text: '#f97316' },
+  WAR:      { bg: 'rgba(239,68,68,0.12)',   border: 'rgba(239,68,68,0.3)',   text: '#ef4444' },
+  ECONOMIC: { bg: 'rgba(245,158,11,0.12)',  border: 'rgba(245,158,11,0.3)',  text: '#f59e0b' },
+  HEALTH:   { bg: 'rgba(16,185,129,0.12)',  border: 'rgba(16,185,129,0.3)',  text: '#10b981' },
+  POLITICAL:{ bg: 'rgba(124,58,237,0.12)',  border: 'rgba(124,58,237,0.3)',  text: '#a78bfa' },
+  SOCIAL:   { bg: 'rgba(236,72,153,0.12)',  border: 'rgba(236,72,153,0.3)',  text: '#ec4899' },
+  TECH:     { bg: 'rgba(6,182,212,0.12)',   border: 'rgba(6,182,212,0.3)',   text: '#06b6d4' },
+  DISASTER: { bg: 'rgba(249,115,22,0.12)',  border: 'rgba(249,115,22,0.3)',  text: '#f97316' },
 }
 
 function ScoreBar({ score }) {
   const color = score >= 70 ? '#10b981' : score >= 40 ? '#f59e0b' : '#6b6485'
-  const width = `${score}%`
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '4px' }}>
       <div style={{ flex: 1, height: '3px', background: 'rgba(255,255,255,0.08)', borderRadius: '2px' }}>
-        <div style={{ width, height: '100%', background: color, borderRadius: '2px',
+        <div style={{ width: `${score}%`, height: '100%', background: color, borderRadius: '2px',
           transition: 'width 0.5s ease' }} />
       </div>
       <span style={{ fontSize: '11px', color, fontWeight: '700', minWidth: '32px', textAlign: 'right' }}>
@@ -32,7 +31,7 @@ function PlanetRow({ p }) {
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 0',
       borderBottom: '1px solid var(--border)' }}>
-      <div style={{ width: '100px', fontSize: '13px', color: 'var(--text-2)', flexShrink: 0 }}>
+      <div style={{ width: '105px', fontSize: '13px', color: 'var(--text-2)', flexShrink: 0 }}>
         {p.label}
       </div>
       <div style={{ flex: 1 }}>
@@ -43,7 +42,7 @@ function PlanetRow({ p }) {
           {p.archetype}
         </span>
       </div>
-      {p.countdown && (
+      {p.countdown && p.countdown !== '—' && (
         <div style={{ fontSize: '11px', color: 'var(--text-3)', flexShrink: 0 }}>
           ⏱ {p.countdown}
         </div>
@@ -85,11 +84,32 @@ function NewsItem({ item }) {
   )
 }
 
+function ForecastBanner({ text }) {
+  if (!text) return null
+  return (
+    <div style={{
+      background: 'rgba(124,58,237,0.08)',
+      border: '1px solid rgba(124,58,237,0.2)',
+      borderRadius: '12px',
+      padding: '12px 14px',
+      marginBottom: '14px',
+      fontSize: '13px',
+      color: 'var(--text-2)',
+      lineHeight: 1.5,
+    }}>
+      <span style={{ color: 'var(--accent-l)', fontWeight: '700', marginRight: '6px' }}>
+        🔭 Сейчас:
+      </span>
+      {text}
+    </div>
+  )
+}
+
 export default function App() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
-  const [tab, setTab] = useState('radar') // radar | news
+  const [tab, setTab] = useState('news') // news по умолчанию — самое понятное
 
   const load = useCallback(async () => {
     try {
@@ -107,7 +127,7 @@ export default function App() {
 
   useEffect(() => {
     load()
-    const interval = setInterval(load, 60_000) // обновляем каждую минуту
+    const interval = setInterval(load, 60_000)
     return () => clearInterval(interval)
   }, [load])
 
@@ -158,7 +178,7 @@ export default function App() {
 
         {/* Табы */}
         <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
-          {[['radar', '🪐 Транзиты'], ['news', '📰 Новости']].map(([id, label]) => (
+          {[['news', '📰 Новости'], ['radar', '🪐 Транзиты']].map(([id, label]) => (
             <button key={id} onClick={() => setTab(id)} style={{
               flex: 1, padding: '8px', borderRadius: '10px', fontSize: '13px', fontWeight: '600',
               cursor: 'pointer', border: 'none',
@@ -169,10 +189,79 @@ export default function App() {
         </div>
       </div>
 
+      {/* ТАБ: НОВОСТИ */}
+      {tab === 'news' && (
+        <div style={{ padding: '16px' }}>
+
+          {/* Прогноз дня */}
+          <ForecastBanner text={data?.forecast} />
+
+          {/* Активные сигналы — краткие пилюли */}
+          {data?.signals?.length > 0 && (
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginBottom: '14px' }}>
+              {data.signals.map(s => {
+                const col = SIGNAL_COLORS[s.category] || SIGNAL_COLORS.POLITICAL
+                return (
+                  <div key={s.category} style={{
+                    background: col.bg, border: `1px solid ${col.border}`,
+                    borderRadius: '20px', padding: '4px 10px',
+                    fontSize: '12px', fontWeight: '600', color: col.text,
+                  }}>
+                    {s.label}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+
+          {/* Новости совпадающие с транзитами */}
+          {highScoreNews.length > 0 && (
+            <>
+              <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
+                color: 'var(--accent-l)', marginBottom: '10px' }}>
+                ✦ Совпадают с транзитами
+              </div>
+              <div className="card" style={{ marginBottom: '16px' }}>
+                {highScoreNews.map((item, i) => <NewsItem key={i} item={item} />)}
+              </div>
+            </>
+          )}
+
+          {otherNews.length > 0 && (
+            <>
+              <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
+                color: 'var(--text-3)', marginBottom: '10px' }}>Остальные новости</div>
+              <div className="card" style={{ marginBottom: '16px' }}>
+                {otherNews.map((item, i) => <NewsItem key={i} item={item} />)}
+              </div>
+            </>
+          )}
+
+          {/* CTA */}
+          <div style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(167,139,250,0.08))',
+            border: '1px solid rgba(124,58,237,0.25)', borderRadius: '16px', padding: '16px',
+            textAlign: 'center' }}>
+            <div style={{ fontSize: '13px', color: 'var(--text-2)', marginBottom: '10px', lineHeight: 1.5 }}>
+              Хочешь узнать как эти транзиты влияют лично на тебя?
+            </div>
+            <a href="https://t.me/StorySelf_bot" target="_blank" rel="noopener noreferrer"
+              style={{ display: 'inline-block', background: 'var(--accent)', color: '#fff',
+                textDecoration: 'none', borderRadius: '12px', padding: '10px 24px',
+                fontSize: '13px', fontWeight: '700' }}>
+              Открыть StorySelf →
+            </a>
+          </div>
+        </div>
+      )}
+
+      {/* ТАБ: ТРАНЗИТЫ */}
       {tab === 'radar' && (
         <div style={{ padding: '16px' }}>
 
-          {/* Сигналы */}
+          {/* Прогноз дня */}
+          <ForecastBanner text={data?.forecast} />
+
+          {/* Сигналы с описанием */}
           {data?.signals?.length > 0 && (
             <div style={{ marginBottom: '16px' }}>
               <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
@@ -187,13 +276,20 @@ export default function App() {
                         <span style={{ fontSize: '14px', fontWeight: '700', color: col.text }}>
                           {s.label}
                         </span>
-                        <span style={{ fontSize: '11px', color: col.text, opacity: 0.7 }}>
-                          {'●'.repeat(s.strength)}
+                        <span style={{ fontSize: '10px', color: col.text, opacity: 0.7,
+                          background: 'rgba(0,0,0,0.2)', borderRadius: '8px', padding: '2px 6px' }}>
+                          ×{s.lift?.toFixed(1)}
                         </span>
                       </div>
-                      <div style={{ fontSize: '11px', color: 'var(--text-2)', marginTop: '4px' }}>
+                      <div style={{ fontSize: '11px', color: 'var(--text-2)', marginTop: '3px' }}>
                         {s.planets.join(' · ')}
                       </div>
+                      {s.description && (
+                        <div style={{ fontSize: '11px', color: 'var(--text-3)', marginTop: '4px',
+                          fontStyle: 'italic' }}>
+                          {s.description}
+                        </div>
+                      )}
                     </div>
                   )
                 })}
@@ -230,47 +326,6 @@ export default function App() {
                 textDecoration: 'none', borderRadius: '12px', padding: '10px 24px',
                 fontSize: '13px', fontWeight: '700' }}>
               Открыть StorySelf →
-            </a>
-          </div>
-        </div>
-      )}
-
-      {tab === 'news' && (
-        <div style={{ padding: '16px' }}>
-          {highScoreNews.length > 0 && (
-            <>
-              <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
-                color: 'var(--accent-l)', marginBottom: '10px' }}>
-                ✦ Совпадают с транзитами
-              </div>
-              <div className="card" style={{ marginBottom: '16px' }}>
-                {highScoreNews.map((item, i) => <NewsItem key={i} item={item} />)}
-              </div>
-            </>
-          )}
-
-          {otherNews.length > 0 && (
-            <>
-              <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
-                color: 'var(--text-3)', marginBottom: '10px' }}>Остальные новости</div>
-              <div className="card">
-                {otherNews.map((item, i) => <NewsItem key={i} item={item} />)}
-              </div>
-            </>
-          )}
-
-          {/* CTA */}
-          <div style={{ marginTop: '16px', background: 'linear-gradient(135deg, rgba(124,58,237,0.15), rgba(167,139,250,0.08))',
-            border: '1px solid rgba(124,58,237,0.25)', borderRadius: '16px', padding: '16px',
-            textAlign: 'center' }}>
-            <div style={{ fontSize: '13px', color: 'var(--text-2)', marginBottom: '10px' }}>
-              Персональный прогноз через твой бодиграф
-            </div>
-            <a href="https://t.me/StorySelf_bot" target="_blank" rel="noopener noreferrer"
-              style={{ display: 'inline-block', background: 'var(--accent)', color: '#fff',
-                textDecoration: 'none', borderRadius: '12px', padding: '10px 24px',
-                fontSize: '13px', fontWeight: '700' }}>
-              StorySelf →
             </a>
           </div>
         </div>
