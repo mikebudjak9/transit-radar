@@ -105,6 +105,82 @@ function ForecastBanner({ text }) {
   )
 }
 
+function ConfirmationBlock({ data }) {
+  if (!data || !data.confirmed_news?.length) return null
+
+  const signalLabels = [...new Set(data.predicted_signals?.map(s => s.label) || [])].slice(0, 2)
+  const catColors = {
+    WAR: '#ef4444', ECONOMIC: '#f59e0b', HEALTH: '#10b981',
+    POLITICAL: '#a78bfa', SOCIAL: '#ec4899', TECH: '#06b6d4', DISASTER: '#f97316',
+  }
+
+  return (
+    <div style={{
+      background: 'rgba(16,185,129,0.06)',
+      border: '1px solid rgba(16,185,129,0.2)',
+      borderRadius: '14px',
+      padding: '14px',
+      marginBottom: '16px',
+    }}>
+      {/* Заголовок */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+        <span style={{ fontSize: '16px' }}>✅</span>
+        <div>
+          <div style={{ fontSize: '13px', fontWeight: '700', color: '#10b981' }}>
+            Предсказали → Сбылось
+          </div>
+          <div style={{ fontSize: '11px', color: 'var(--text-3)', marginTop: '1px' }}>
+            {data.summary}
+          </div>
+        </div>
+      </div>
+
+      {/* Сигналы-пилюли */}
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '5px', marginBottom: '10px' }}>
+        {signalLabels.map((label, i) => (
+          <span key={i} style={{
+            background: 'rgba(16,185,129,0.1)',
+            border: '1px solid rgba(16,185,129,0.25)',
+            borderRadius: '20px', padding: '2px 9px',
+            fontSize: '11px', fontWeight: '600', color: '#10b981',
+          }}>{label}</span>
+        ))}
+        <span style={{ fontSize: '11px', color: 'var(--text-3)', padding: '2px 4px' }}>→</span>
+        <span style={{
+          background: 'rgba(16,185,129,0.1)',
+          border: '1px solid rgba(16,185,129,0.25)',
+          borderRadius: '20px', padding: '2px 9px',
+          fontSize: '11px', color: '#10b981',
+        }}>{data.confirmed_news.length} совпадений в новостях</span>
+      </div>
+
+      {/* Новости-подтверждения */}
+      {data.confirmed_news.map((item, i) => {
+        const cat = item.categories?.[0]
+        const dotColor = catColors[cat] || '#10b981'
+        return (
+          <a key={i} href={item.link} target="_blank" rel="noopener noreferrer"
+            style={{ textDecoration: 'none', display: 'block' }}>
+            <div style={{
+              display: 'flex', gap: '8px', alignItems: 'flex-start',
+              padding: '6px 0',
+              borderTop: i > 0 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+            }}>
+              <div style={{
+                width: '5px', height: '5px', borderRadius: '50%',
+                background: dotColor, marginTop: '5px', flexShrink: 0,
+              }} />
+              <span style={{ fontSize: '12px', color: 'var(--text-2)', lineHeight: 1.4 }}>
+                {item.title}
+              </span>
+            </div>
+          </a>
+        )
+      })}
+    </div>
+  )
+}
+
 export default function App() {
   const [data, setData] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -195,6 +271,9 @@ export default function App() {
 
           {/* Прогноз дня */}
           <ForecastBanner text={data?.forecast} />
+
+          {/* Блок подтверждения: вчера предсказали → сегодня сбылось */}
+          <ConfirmationBlock data={data?.confirmation} />
 
           {/* Активные сигналы — краткие пилюли */}
           {data?.signals?.length > 0 && (
