@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+.env
+.env.local
+node_modules/
+app/node_modules/
+app/dist/
+.DS_Store
+test_api.py
+wiki_events.json
+*.json.bak
