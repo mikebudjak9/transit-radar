@@ -227,8 +227,8 @@ export default function App() {
     </div>
   )
 
-  const highScoreNews = (data?.news || []).filter(n => n.score >= 40)
-  const otherNews = (data?.news || []).filter(n => n.score < 40)
+  const highScoreNews = (data?.news || []).filter(n => n.score >= 20)
+  const otherNews = (data?.news || []).filter(n => n.score < 20)
 
   return (
     <div style={{ maxWidth: '480px', margin: '0 auto', padding: '0 0 80px' }}>
@@ -298,7 +298,7 @@ export default function App() {
             <>
               <div style={{ fontSize: '11px', letterSpacing: '2px', textTransform: 'uppercase',
                 color: 'var(--accent-l)', marginBottom: '10px' }}>
-                ✦ Совпадают с транзитами
+                ✦ Совпадают с активными сигналами
               </div>
               <div className="card" style={{ marginBottom: '16px' }}>
                 {highScoreNews.map((item, i) => <NewsItem key={i} item={item} />)}
